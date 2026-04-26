@@ -250,7 +250,7 @@ const api = {
   payNow:  (id,data)   => api.req(`/products/${id}/payment`, { method:'POST', body:JSON.stringify(data) }),
   benchFull: ()        => api.req('/benchmarks/full'),
   benchTps:  (n)       => api.req('/benchmarks/tps', { method:'POST', body:JSON.stringify({count:n}) }),
-  health:  ()          => fetch(`${API_BASE.replace('/api','')}/health`).then(r=>r.json()).catch(()=>null),
+  health:  ()          => fetch(`${API_BASE.replace('/api','')}/health`,{headers:{'ngrok-skip-browser-warning':'1'}}).then(r=>r.json()).catch(()=>null),
 };
 
 // ─── TOAST CONTEXT ────────────────────────────────────────────────────────────
@@ -1629,7 +1629,7 @@ const BenchPage = () => {
   return (
     <div className="space-y-5 animate-fade-in max-w-4xl">
       <div><h2 className="text-lg font-display font-bold text-white">Performance Benchmarks</h2><p className="text-xs text-slate-600 mt-0.5">Measure Fabric & Cassandra performance</p></div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="glass-card rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2"><I name="zap" size={18} className="text-teal-400"/><h3 className="text-sm font-semibold text-white">Full Benchmark</h3></div>
@@ -1646,12 +1646,13 @@ const BenchPage = () => {
                 </div>
               </div>
               <div className="glass-card rounded-xl p-3">
-                <div className="flex items-center gap-1.5 mb-2"><I name="shield" size={13} className="text-teal-400"/><span className="text-[10px] text-slate-400 font-semibold uppercase">Fabric Query</span></div>
+                <div className="flex items-center gap-1.5 mb-2"><I name="shield" size={13} className="text-teal-400"/><span className="text-[10px] text-slate-400 font-semibold uppercase">Fabric (Blockchain)</span></div>
                 <div className="grid grid-cols-3 gap-2">
-                  {[{l:'Avg',v:`${full.results.fabric_query?.avgMs}ms`},{l:'Min',v:`${full.results.fabric_query?.minMs}ms`},{l:'Max',v:`${full.results.fabric_query?.maxMs}ms`}].map((x,i)=>(
+                  {[{l:'Avg',v:`${full.results.fabric?.avgMs ?? 'N/A'}ms`},{l:'Min',v:`${full.results.fabric?.minMs ?? 'N/A'}ms`},{l:'Max',v:`${full.results.fabric?.maxMs ?? 'N/A'}ms`}].map((x,i)=>(
                     <div key={i} className="text-center"><p className="text-lg font-display font-bold text-teal-400">{x.v}</p><p className="text-[9px] text-slate-600">{x.l}</p></div>
                   ))}
                 </div>
+                {full.results.fabric?.error && <p className="text-[9px] text-rose-400 mt-2">{full.results.fabric.error}</p>}
               </div>
             </div>
           ):<p className="text-xs text-slate-700 text-center py-6">Click Run to start benchmark</p>}
