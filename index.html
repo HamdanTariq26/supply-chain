@@ -226,7 +226,12 @@ const api = {
     const token = sessionStorage.getItem('sc_token');
     const res = await fetch(`${API_BASE}${ep}`, {
       ...opts,
-      headers: { 'Content-Type':'application/json', ...(token&&{Authorization:`Bearer ${token}`}), ...opts.headers }
+      headers: { 
+        'Content-Type':'application/json', 
+        'ngrok-skip-browser-warning': '1',
+        ...(token&&{Authorization:`Bearer ${token}`}), 
+        ...opts.headers 
+      }
     });
     if (!res.ok) { const e=await res.json().catch(()=>({error:'Request failed'})); throw new Error(e.error||`HTTP ${res.status}`); }
     return res.json();
