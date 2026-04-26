@@ -1647,19 +1647,19 @@ const BenchPage = () => {
               <div className="glass-card rounded-xl p-3 bg-slate-900/30">
                 <div className="flex items-center gap-1.5 mb-2"><I name="db" size={13} className="text-emerald-400"/><span className="text-[10px] text-slate-400 font-semibold uppercase">Cassandra</span></div>
                 <div className="grid grid-cols-3 gap-2">
-                  {[{l:'Avg',v:`${full.results.cassandra?.avgMs}ms`},{l:'Min',v:`${full.results.cassandra?.minMs}ms`},{l:'Max',v:`${full.results.cassandra?.maxMs}ms`}].map((x,i)=>(
+                  {[{l:'Avg',v:full.results.cassandra?`${full.results.cassandra.avgMs}ms`:'N/A'},{l:'Min',v:full.results.cassandra?`${full.results.cassandra.minMs}ms`:'N/A'},{l:'Max',v:full.results.cassandra?`${full.results.cassandra.maxMs}ms`:'N/A'}].map((x,i)=>(
                     <div key={i} className="text-center"><p className="text-lg font-display font-bold text-emerald-400">{x.v}</p><p className="text-[9px] text-slate-600">{x.l}</p></div>
                   ))}
                 </div>
               </div>
               <div className="glass-card rounded-xl p-3 bg-slate-900/30">
-                <div className="flex items-center gap-1.5 mb-2"><I name="shield" size={13} className="text-teal-400"/><span className="text-[10px] text-slate-400 font-semibold uppercase font-display tracking-wider">Blockchain</span></div>
+                <div className="flex items-center gap-1.5 mb-2"><I name="shield" size={13} className="text-teal-400"/><span className="text-[10px] text-slate-400 font-semibold uppercase font-display tracking-wider">Blockchain (Fabric)</span></div>
                 <div className="grid grid-cols-3 gap-2">
-                  {[{l:'Avg',v:`${full.results.fabric?.avgMs ?? 'N/A'}ms`},{l:'Min',v:`${full.results.fabric?.minMs ?? 'N/A'}ms`},{l:'Max',v:`${full.results.fabric?.maxMs ?? 'N/A'}ms`}].map((x,i)=>(
+                  {[{l:'Avg',v:full.results.fabric?.avgMs ? `${full.results.fabric.avgMs}ms` : 'N/A'},{l:'Min',v:full.results.fabric?.minMs ? `${full.results.fabric.minMs}ms` : 'N/A'},{l:'Max',v:full.results.fabric?.maxMs ? `${full.results.fabric.maxMs}ms` : 'N/A'}].map((x,i)=>(
                     <div key={i} className="text-center"><p className="text-lg font-display font-bold text-teal-400">{x.v}</p><p className="text-[9px] text-slate-600">{x.l}</p></div>
                   ))}
                 </div>
-                {full.results.fabric?.error && <p className="text-[9px] text-amber-500/80 mt-2 bg-amber-500/5 p-1 rounded italic">{full.results.fabric.error}</p>}
+                {full.results.fabric?.error && <p className="text-[9px] text-amber-500/80 mt-2 bg-amber-500/5 p-1.5 rounded border border-amber-500/10 italic text-center">{full.results.fabric.error}</p>}
               </div>
             </div>
           ):<div className="text-center py-10 border-2 border-dashed border-white/5 rounded-2xl"><I name="zap" size={32} className="text-slate-800 mx-auto mb-2"/><p className="text-[11px] text-slate-600">Click Run to measure latency</p></div>}
