@@ -1680,7 +1680,7 @@ const BenchPage = () => {
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Transactions / Sec</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                {[{l:'Time',v:`${(tps.results.totalTimeMs/1000).toFixed(1)}s`},{l:'Success',v:`${tps.results.successful}/${tps.config?.transactions}`},
+                {[{l:'Time',v:tps.results.totalTimeMs > 1000 ? `${(tps.results.totalTimeMs/1000).toFixed(1)}s` : `${tps.results.totalTimeMs}ms`},{l:'Success',v:`${tps.results.successful}/${tps.config?.transactions||5}`},
                   {l:'Avg',v:`${tps.results.latency?.avgMs}ms`},{l:'Max',v:`${tps.results.latency?.maxMs}ms`}
                 ].map((x,i)=>(
                   <div key={i} className="glass-card rounded-xl p-2 text-center bg-slate-900/20">
@@ -1688,6 +1688,19 @@ const BenchPage = () => {
                   </div>
                 ))}
               </div>
+              {tps.breakdown && (
+                <div className="space-y-1.5 pt-2 border-t border-white/5">
+                  <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Query Breakdown</p>
+                  <div className="grid grid-cols-5 gap-1">
+                    {tps.breakdown.map((b,i)=>(
+                      <div key={i} className="flex flex-col items-center p-1.5 rounded-lg bg-white/5 border border-white/5">
+                        <span className="text-[8px] text-slate-500 mb-0.5">#{b.tx}</span>
+                        <span className={`text-[10px] font-mono font-bold ${b.status==='success'?'text-emerald-400':'text-rose-400'}`}>{b.latency}ms</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ):<div className="text-center py-10 border-2 border-dashed border-white/5 rounded-2xl"><I name="activity" size={32} className="text-slate-800 mx-auto mb-2"/><p className="text-[11px] text-slate-600">Click Run for 5x stress test</p></div>}
         </div>
