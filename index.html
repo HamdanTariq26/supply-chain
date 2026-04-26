@@ -167,6 +167,10 @@
     .glass-input option{background:#0a1929}
 
     ::-webkit-calendar-picker-indicator{filter:invert(0.6) sepia(1) saturate(2) hue-rotate(150deg)}
+    .custom-scrollbar::-webkit-scrollbar{width:6px;height:6px}
+    .custom-scrollbar::-webkit-scrollbar-track{background:rgba(255,255,255,0.02)}
+    .custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(20,184,166,0.2);border-radius:10px}
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover{background:rgba(20,184,166,0.4)}
   </style>
 </head>
 <body class="text-slate-300 antialiased sc-bg">
@@ -401,19 +405,19 @@ const Sel = ({label,icon,error,options,className='',...props}) => (
 );
 
 const Stat = ({title,value,subtitle,icon,color='teal',trend}) => (
-  <div className="glass-card rounded-2xl p-5 relative overflow-hidden group">
-    <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity" style={{background:`radial-gradient(circle,var(--tw-gradient-from),transparent)`}}></div>
-    <div className="flex justify-between items-start mb-3">
-      <div className={`p-2.5 rounded-xl bg-${color}-500/15 text-${color}-400`}><I name={icon} size={22}/></div>
+  <div className="glass-card rounded-2xl p-6 relative overflow-hidden group border-white/5">
+    <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-500 scale-75 group-hover:scale-100" style={{background:`radial-gradient(circle,var(--tw-gradient-from),transparent)`}}></div>
+    <div className="flex justify-between items-start mb-4">
+      <div className={`p-3 rounded-2xl bg-${color}-500/10 text-${color}-400 border border-${color}-500/20`}><I name={icon} size={24}/></div>
       {trend!==undefined&&(
-        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${trend>0?'bg-emerald-500/15 text-emerald-400':'bg-rose-500/15 text-rose-400'}`}>
+        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg ${trend>0?'bg-emerald-500/10 text-emerald-400':'bg-rose-500/10 text-rose-400'}`}>
           {trend>0?'+':''}{trend}%
         </span>
       )}
     </div>
-    <h3 className="text-2xl font-display font-bold text-white mb-0.5 animate-count">{value}</h3>
-    <p className="text-xs text-slate-400 font-medium">{title}</p>
-    {subtitle&&<p className="text-[10px] text-slate-600 mt-1">{subtitle}</p>}
+    <h3 className="text-3xl font-display font-bold text-white mb-1 tracking-tight">{value}</h3>
+    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{title}</p>
+    {subtitle&&<p className="text-[10px] text-slate-600 mt-2 italic">{subtitle}</p>}
   </div>
 );
 
@@ -439,15 +443,18 @@ const Sidebar = ({user,activeTab,onTabChange,onProfileClick}) => {
   ];
 
   return (
-    <aside className="w-60 glass border-r border-teal-500/10 flex flex-col h-screen sticky top-0">
-      <div className="p-5 border-b border-white/5">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg shadow-lg shadow-teal-500/20">
-            <I name="shield" size={18} className="text-white"/>
+    <aside className="w-64 glass border-r border-white/5 flex flex-col h-screen sticky top-0 z-40">
+      <div className="p-6 border-b border-white/5 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl shadow-lg shadow-teal-500/20">
+            <I name="shield" size={20} className="text-white"/>
           </div>
           <div>
-            <h1 className="font-display font-bold text-white text-base tracking-tight">SupplyChain</h1>
-            <p className="text-[10px] text-teal-400 font-semibold tracking-widest">PRO</p>
+            <h1 className="font-display font-bold text-white text-lg tracking-tight">SupplyChain</h1>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span>
+              <p className="text-[9px] text-teal-400/80 font-bold tracking-[0.2em] uppercase">Enterprise</p>
+            </div>
           </div>
         </div>
       </div>
@@ -2043,9 +2050,51 @@ const ScannerPage = ({user}) => {
 };
 
 // ─── DASHBOARD LAYOUT ───────────────────────────────────────────────────────
+const TopBar = ({title,user,onProfile}) => (
+  <header className="flex items-center justify-between px-8 py-5 border-b border-white/5 bg-slate-950/20 backdrop-blur-md sticky top-0 z-30">
+    <div>
+      <h2 className="text-xl font-display font-bold text-white tracking-tight">{title}</h2>
+      <div className="flex items-center gap-2 mt-0.5">
+        <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Workspace</span>
+        <span className="text-slate-700">/</span>
+        <span className="text-[10px] text-teal-500/80 uppercase font-bold tracking-widest">{user.org_name}</span>
+      </div>
+    </div>
+    <div className="flex items-center gap-4">
+      <button className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-colors relative">
+        <I name="bell" size={18}/>
+        <span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#0f172a]"></span>
+      </button>
+      <div onClick={onProfile} className="flex items-center gap-3 pl-4 border-l border-white/5 cursor-pointer group">
+        <div className="text-right">
+          <p className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">{user.full_name}</p>
+          <p className="text-[10px] text-slate-500 font-medium">{user.role}</p>
+        </div>
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 flex items-center justify-center text-teal-400 group-hover:border-teal-500/30 transition-all shadow-xl">
+          <I name="user" size={20}/>
+        </div>
+      </div>
+    </div>
+  </header>
+);
+
 const DashLayout = ({user}) => {
   const [tab,setTab] = useState('dashboard');
   const [showProfile,setShowProfile] = useState(false);
+
+  const getTitle = () => {
+    const item = [
+      {id:'dashboard',label:'Command Center'},
+      {id:'products',label:'Product Inventory'},
+      {id:'transfers',label:'Logistics & Transfers'},
+      {id:'history',label:'Audit Trail'},
+      {id:'verify',label:'Product Verification'},
+      {id:'scanner',label:'High-Speed QR Scanner'},
+      {id:'benchmarks',label:'System Performance'},
+      {id:'settings',label:'User Settings'}
+    ].find(x=>x.id===tab);
+    return item?.label || 'Dashboard';
+  };
 
   const content = () => {
     switch(tab){
@@ -2069,9 +2118,16 @@ const DashLayout = ({user}) => {
   };
 
   return (
-    <div className="flex min-h-screen sc-bg">
+    <div className="flex min-h-screen sc-bg font-sans selection:bg-teal-500/30">
       <Sidebar user={user} activeTab={tab} onTabChange={setTab} onProfileClick={()=>setShowProfile(true)}/>
-      <main className="flex-1 p-6 overflow-y-auto">{content()}</main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <TopBar title={getTitle()} user={user} onProfile={()=>setShowProfile(true)}/>
+        <main className="flex-1 p-8 overflow-y-auto custom-scrollbar">
+          <div className="max-w-[1400px] mx-auto">
+            {content()}
+          </div>
+        </main>
+      </div>
       {showProfile&&<ProfileModal user={user} onClose={()=>setShowProfile(false)}/>}
     </div>
   );
