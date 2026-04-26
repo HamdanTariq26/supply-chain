@@ -577,25 +577,58 @@ const Pipeline = ({currentStatus}) => {
 };
 
 // ─── PRODUCT TIMELINE ───────────────────────────────────────────────────────
-const Timeline = ({history,currentStatus}) => {
+const Timeline = ({history,currentStatus,loading,product}) => {
   const ci = STATUS_FLOW.indexOf(currentStatus);
-  // Deduplicate history by transaction ID to prevent infinite loops/duplicates
-  const uniqueHistory = Array.from(new Map((history||[]).map(item => [item.txId||item.tx_id||Math.random(), item])).values());
   
+  // Filter and normalize
+  const milestones = (history||[]).filter(h => {
+    const s = (h.status||h.state||h.event_type||h.eventType||'').toString().trim().toUpperCase();
+    return s !== 'IOT_READING' && s !== '';
+  });
+
+  // Sort by time (Oldest first)
+  const sorted = [...milestones].sort((a,b) => {
+    const ta = a.timestamp || a.event_time || '';
+    const tb = b.timestamp || b.event_time || '';
+    return ta.toString().localeCompare(tb.toString());
+  });
+
+  // If loading is finished but we have no milestones, show a default manufactured state using real product data
+  if (!loading && sorted.length === 0 && product) {
+    sorted.push({ 
+      status: 'MANUFACTURED', 
+      timestamp: product.created_at || product.createdAt || new Date().toISOString(), 
+      location: product.metadata?.location || 'Factory', 
+      owner: product.manufacturer_org || product.manufacturer || product.current_owner_org || 'Unknown',
+      notes: 'Genesis record' 
+    });
+  }
+
   return (
     <div className="relative pl-8 py-2">
       <div className="absolute left-[11px] top-2 bottom-2 w-0.5 rounded-full" style={{background:'linear-gradient(to bottom,#14b8a6,#0d9488,#d97706,#10b981)'}}></div>
       <div className="space-y-5">
-        {uniqueHistory.map((item,idx)=>{
-          const st = item.status||item.event_type||(idx===0?'MANUFACTURED':null);
-          if(!st) return null; // Skip invalid entries
-          const isActive = STATUS_FLOW.indexOf(st)<=ci;
+        {loading ? (
+          <div className="py-10 text-center animate-pulse">
+            <I name="loader" className="mx-auto mb-2 text-teal-500 animate-spin" size={24}/>
+            <p className="text-xs text-slate-500 uppercase tracking-widest">Loading Journey...</p>
+          </div>
+        ) : sorted.map((item,idx)=>{
+          const val = item.value || item.Value || item;
+          let rawSt = item.status || item.state || item.event_type || item.eventType || 
+                      val.status || val.state || val.currentStatus || val.current_status;
+          
+          if(!rawSt && idx === 0) rawSt = 'MANUFACTURED';
+          if(!rawSt) return null;
+
+          const st = rawSt.toString().trim().toUpperCase();
+          const isActive = STATUS_FLOW.indexOf(st) <= ci;
           const c = STATUS_CFG[st]||STATUS_CFG.MANUFACTURED;
-          const ts = item.timestamp||item.event_time;
-          const owner = item.owner||item.to_org||item.from_org||'Unknown';
-          const loc = item.location||'N/A';
-          const notes = item.notes||'';
-          const txId = item.txId||item.tx_id||item.fabric_tx_id||'';
+          const ts = item.timestamp || uuidToDate(item.event_time) || val.timestamp || '';
+          const owner = item.owner || item.to_org || item.from_org || val.currentOwnerOrg || val.current_owner_org || val.owner || 'Unknown';
+          const loc = item.location || val.location || 'N/A';
+          const notes = item.notes || val.notes || '';
+          const txId = item.txId || item.tx_id || item.fabric_tx_id || val.fabricTxId || val.fabric_tx_id || '';
 
           return (
             <div key={idx} className="relative animate-slide-up" style={{animationDelay:`${idx*80}ms`}}>
@@ -746,6 +779,7 @@ const DetailModal = ({product,userRole,onClose,onUpdate}) => {
   const [events,setEvents] = useState([]);
   const [evLd,setEvLd] = useState(false);
   const [localHist,setLocalHist] = useState(product.history||[]);
+  const [timeLd,setTimeLd] = useState(false);
   const [qr,setQr] = useState(null);
   const [qrLd,setQrLd] = useState(false);
   const [iot,setIot] = useState([]);
@@ -771,11 +805,20 @@ const DetailModal = ({product,userRole,onClose,onUpdate}) => {
   // Load timeline from events API
   useEffect(()=>{
     if(tab==='timeline'&&pid){
+      setTimeLd(true);
       api.events(pid).then(r=>{
-        if(r.success&&r.events){
-          setLocalHist(r.events.map(e=>({status:e.event_type,timestamp:uuidToDate(e.event_time),location:e.location,owner:e.to_org||e.from_org,notes:e.notes,txId:e.fabric_tx_id})));
+        if(r.success && r.events){
+          setLocalHist(r.events.map(e => ({
+            ...e,
+            status: e.event_type || e.eventType || e.status || 'STATUS_UNKNOWN',
+            timestamp: uuidToDate(e.event_time) || e.timestamp || new Date().toISOString(),
+            location: e.location || 'Unknown',
+            owner: e.to_org || e.from_org || 'Unknown',
+            notes: e.notes || '',
+            txId: e.fabric_tx_id || e.txId || e.fabricTxId
+          })));
         }
-      }).catch(()=>{});
+      }).catch(e=>console.error('Timeline fetch error:', e)).finally(()=>setTimeLd(false));
     }
   },[tab,pid]);
 
@@ -816,9 +859,9 @@ const DetailModal = ({product,userRole,onClose,onUpdate}) => {
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-        <div className="glass rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden animate-scale-in" onClick={e=>e.stopPropagation()}>
+        <div className="glass rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden animate-scale-in flex flex-col" onClick={e=>e.stopPropagation()}>
           {/* Header */}
-          <div className="p-4 sm:p-5 border-b border-white/5">
+          <div className="p-4 sm:p-5 border-b border-white/5 flex-shrink-0">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5 mb-1">
@@ -844,7 +887,7 @@ const DetailModal = ({product,userRole,onClose,onUpdate}) => {
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b border-white/5 bg-slate-900/30 overflow-x-auto">
+          <div className="flex overflow-x-auto custom-scrollbar border-b border-white/5 px-2 flex-shrink-0">
             {tabs.map(t=>(
               <button key={t.id} onClick={()=>setTab(t.id)}
                 className={`tab-btn flex items-center gap-1.5 whitespace-nowrap ${tab===t.id?'active':''}`}>
@@ -854,8 +897,42 @@ const DetailModal = ({product,userRole,onClose,onUpdate}) => {
           </div>
 
           {/* Tab Content */}
-          <div className="p-5 overflow-y-auto max-h-[60vh]">
-            {tab==='timeline'&&<Timeline history={localHist} currentStatus={cs}/>}
+          <div className="p-5 overflow-y-auto flex-1 custom-scrollbar min-h-0">
+            {tab==='timeline' && (
+            <div className="pr-2">
+              <Timeline history={localHist} currentStatus={cs} loading={timeLd} product={product}/>
+            </div>
+          )}
+          
+          {tab==='sensors' && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-white uppercase tracking-widest">IoT Sensor Logs</h4>
+                <span className="text-[10px] text-teal-400 font-mono bg-teal-500/10 px-2 py-0.5 rounded-full">Live Feed</span>
+              </div>
+              <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                {localHist.filter(h => h.status==='IOT_READING').length === 0 ? (
+                  <div className="text-center py-10 text-slate-600 text-xs">No sensor data available for this product.</div>
+                ) : (
+                  localHist.filter(h => h.status==='IOT_READING').map((h,i)=>(
+                    <div key={i} className="glass-card p-3 rounded-xl flex items-center justify-between border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-teal-500/10"><I name="thermometer" size={14} className="text-teal-400"/></div>
+                        <div>
+                          <p className="text-xs font-bold text-white">{h.notes || 'Normal Reading'}</p>
+                          <p className="text-[9px] text-slate-500 uppercase">{new Date(h.timestamp).toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-mono text-teal-400">{h.location}</p>
+                        <p className="text-[9px] text-slate-600 uppercase">Gateway verified</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
 
             {tab==='details'&&(
               <div className="space-y-3 animate-slide-up">
@@ -905,10 +982,10 @@ const DetailModal = ({product,userRole,onClose,onUpdate}) => {
                             <div key={i} className="glass-card rounded-xl p-3 border-l-2 border-amber-500/50">
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <p className="text-xs font-medium text-amber-300">{a.alert_type||'Threshold Alert'}</p>
-                                  <p className="text-[10px] text-slate-500 mt-0.5">{a.message||`Value: ${a.value}`}</p>
+                                  <p className="text-xs font-medium text-amber-300">Threshold Alert</p>
+                                  <p className="text-[10px] text-slate-500 mt-0.5">{a.alert || `Temp: ${a.temperature}°C, Hum: ${a.humidity}%`}</p>
                                 </div>
-                                <span className="text-[9px] text-slate-600">{fmt(uuidToDate(a.alert_time))}</span>
+                                <span className="text-[9px] text-slate-600">{fmtDT(a.timestamp)}</span>
                               </div>
                             </div>
                           ))}
@@ -935,7 +1012,7 @@ const DetailModal = ({product,userRole,onClose,onUpdate}) => {
                                   <span className="text-xs text-slate-400">{r.location}</span>
                                 </div>
                               </div>
-                              <span className="text-[9px] text-slate-600 font-mono">{r.device_id}</span>
+                              <span className="text-[9px] text-slate-600 font-mono">{fmtDT(r.timestamp)}</span>
                             </div>
                           ))}
                         </div>
@@ -1459,9 +1536,10 @@ const CustDash = ({user}) => {
     const id = idOverride || searchId;
     try {
       const r = await api.verify(id);
+      console.log('Verify Result:', r);
       if(r.success){setProduct({...r.blockchain,history:r.history,isAuthentic:r.isAuthentic,metadata:r.database?.metadata||{}});toast.success('Product verified!');}
       else setError('Product not found');
-    } catch(err){setError('Verification failed');} finally{setLd(false);}
+    } catch(err){console.error('Verify error:', err); setError('Verification failed');} finally{setLd(false);}
   };
 
   return (
