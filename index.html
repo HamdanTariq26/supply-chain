@@ -250,7 +250,7 @@ const api = {
   payNow:  (id,data)   => api.req(`/products/${id}/payment`, { method:'POST', body:JSON.stringify(data) }),
   benchFull: ()        => api.req('/benchmarks/full'),
   benchTps:  (n)       => api.req('/benchmarks/tps', { method:'POST', body:JSON.stringify({count:n}) }),
-  health:  ()          => api.req('/health'.replace('/api','')).catch(()=>null),
+  health:  ()          => api.req('/health').catch(()=>null),
 };
 
 // ─── TOAST CONTEXT ────────────────────────────────────────────────────────────
@@ -425,25 +425,25 @@ const Stat = ({title,value,subtitle,icon,color='teal',trend}) => (
 const Sidebar = ({user,activeTab,onTabChange,onProfileClick}) => {
   const role = ROLE_CFG[user?.role]||ROLE_CFG.MANUFACTURER;
   const [health,setHealth] = useState(null);
-  useEffect(()=>{
-    fetch('http://localhost:3000/health').then(r=>r.json()).then(d=>setHealth(d)).catch(()=>setHealth(null));
-    const iv=setInterval(()=>{fetch('http://localhost:3000/health').then(r=>r.json()).then(d=>setHealth(d)).catch(()=>setHealth(null))},30000);
-    return ()=>clearInterval(iv);
-  },[]);
-
   const menu = [
     {id:'dashboard',label:'Dashboard',icon:'chart'},
-    {id:'products',label:'Products',icon:'package'},
-    {id:'transfers',label:'Transfers',icon:'transfer'},
-    {id:'history',label:'History',icon:'history'},
+    {id:'products',label:'Inventory',icon:'package'},
+    {id:'transfers',label:'Logistics',icon:'transfer'},
+    {id:'history',label:'Audit',icon:'history'},
     ...(user?.role==='CUSTOMER'?[{id:'verify',label:'Verify',icon:'shield'}]:[]),
-    {id:'scanner',label:'QR Scanner',icon:'qr'},
-    {id:'benchmarks',label:'Benchmarks',icon:'activity'},
+    {id:'scanner',label:'Scanner',icon:'qr'},
+    {id:'benchmarks',label:'System',icon:'activity'},
     {id:'settings',label:'Settings',icon:'settings'},
   ];
 
+  useEffect(()=>{
+    const check = () => api.health().then(setHealth);
+    check(); const iv=setInterval(check,30000);
+    return ()=>clearInterval(iv);
+  },[]);
+
   return (
-    <aside className="w-64 glass border-r border-white/5 flex flex-col h-screen sticky top-0 z-40">
+    <aside className="hidden lg:flex w-64 glass border-r border-white/5 flex-col h-screen sticky top-0 z-40">
       <div className="p-6 border-b border-white/5 mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl shadow-lg shadow-teal-500/20">
@@ -1272,18 +1272,18 @@ const MfgDash = ({user}) => {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div className="grid grid-cols-4 gap-3">
-        <Stat title="Total Products" value={stats.total} icon="package" color="teal"/>
-        <Stat title="Manufactured" value={stats.mfg} icon="factory" color="teal"/>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <Stat title="Total" value={stats.total} icon="package" color="teal"/>
+        <Stat title="Mfg" value={stats.mfg} icon="factory" color="teal"/>
         <Stat title="Shipped" value={stats.shipped} icon="truck" color="amber"/>
-        <Stat title="Downstream" value={stats.received} icon="box" color="emerald"/>
+        <Stat title="Retail" value={stats.received} icon="box" color="emerald"/>
       </div>
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center px-1">
         <h2 className="text-lg font-display font-bold text-white">My Products</h2>
-        <Btn onClick={()=>setShowCreate(true)} icon={<I name="plus" size={14}/>}>Create Product</Btn>
+        <Btn onClick={()=>setShowCreate(true)} icon={<I name="plus" size={14}/>} className="scale-90 md:scale-100">Create</Btn>
       </div>
       {loading?<div className="text-center py-10"><I name="loader" size={28} className="text-slate-600"/></div>:(
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {products.map(p=><ProductCard key={p.product_id||p.productId} product={p} userRole="MANUFACTURER" onClick={setSel} showActions/>)}
         </div>
       )}
@@ -1352,24 +1352,24 @@ const DistDash = ({user}) => {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
         <Stat title="Incoming" value={incoming.length} icon="truck" color="amber"/>
-        <Stat title="In Warehouse" value={warehouse.length} icon="box" color="teal"/>
-        <Stat title="Shipped Out" value={shipped.length} icon="transfer" color="emerald"/>
+        <Stat title="Warehouse" value={warehouse.length} icon="box" color="teal"/>
+        <Stat title="Shipped" value={shipped.length} icon="transfer" color="emerald"/>
       </div>
-      <form onSubmit={search} className="flex gap-3">
-        <Inp value={searchId} onChange={e=>setSearchId(e.target.value)} placeholder="Search by Product ID..." className="flex-1"/>
-        <Btn type="submit" icon={<I name="search" size={14}/>}>Search</Btn>
+      <form onSubmit={search} className="flex gap-2">
+        <Inp value={searchId} onChange={e=>setSearchId(e.target.value)} placeholder="Search ID..." className="flex-1"/>
+        <Btn type="submit" icon={<I name="search" size={14}/>} className="px-4">Search</Btn>
       </form>
-      {[{title:'Incoming Shipments',items:incoming,dot:'bg-amber-500'},
-        {title:'In Warehouse',items:warehouse,dot:'bg-teal-500'},
-        {title:'Shipped to Retailers',items:shipped,dot:'bg-emerald-500'}
+      {[{title:'Incoming',items:incoming,dot:'bg-amber-500'},
+        {title:'Inventory',items:warehouse,dot:'bg-teal-500'},
+        {title:'Shipped',items:shipped,dot:'bg-emerald-500'}
       ].map(sec=>sec.items.length>0&&(
         <div key={sec.title}>
-          <h3 className="text-sm font-semibold text-white mb-2.5 flex items-center gap-2">
+          <h3 className="text-xs font-semibold text-white mb-3 flex items-center gap-2 px-1">
             <span className={`w-2 h-2 rounded-full ${sec.dot}`}></span>{sec.title} ({sec.items.length})
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {sec.items.map(p=><ProductCard key={p.product_id||p.productId} product={p} userRole="DISTRIBUTOR" onClick={setSel} showActions/>)}
           </div>
         </div>
@@ -1405,20 +1405,20 @@ const RetailDash = ({user}) => {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
         <Stat title="Incoming" value={incoming.length} icon="truck" color="amber"/>
         <Stat title="On Shelf" value={shelf.length} icon="store" color="teal"/>
         <Stat title="Sold" value={sold.length} icon="user" color="emerald"/>
       </div>
-      {[{title:'Incoming Deliveries',items:incoming,dot:'bg-amber-500',acts:true},
-        {title:'On Shelf',items:shelf,dot:'bg-teal-500',acts:true},
-        {title:'Sold to Customers',items:sold,dot:'bg-emerald-500',acts:false}
+      {[{title:'Pending Receipt',items:incoming,dot:'bg-amber-500',acts:true},
+        {title:'Active Inventory',items:shelf,dot:'bg-teal-500',acts:true},
+        {title:'Sales History',items:sold,dot:'bg-emerald-500',acts:false}
       ].map(sec=>sec.items.length>0&&(
         <div key={sec.title}>
-          <h3 className="text-sm font-semibold text-white mb-2.5 flex items-center gap-2">
+          <h3 className="text-xs font-semibold text-white mb-3 flex items-center gap-2 px-1">
             <span className={`w-2 h-2 rounded-full ${sec.dot}`}></span>{sec.title} ({sec.items.length})
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {sec.items.map(p=><ProductCard key={p.product_id||p.productId} product={p} userRole="RETAILER" onClick={setSel} showActions={sec.acts}/>)}
           </div>
         </div>
@@ -1513,7 +1513,7 @@ const CustDash = ({user}) => {
       {purchases.length>0&&(
         <div className="mt-10 pt-8 border-t border-white/5">
           <h3 className="text-lg font-display font-bold text-white mb-4">My Purchases</h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {purchases.map(p=><ProductCard key={p.product_id||p.productId} product={p} userRole="CUSTOMER" onClick={p=>{setProduct({...p, history:[]}); search(null, p.product_id||p.productId); setSearchId(p.product_id||p.productId);}} />)}
           </div>
         </div>
@@ -1535,10 +1535,15 @@ const ProductsPage = ({user}) => {
   };
   useEffect(()=>{load();},[]);
   return (
-    <div className="space-y-5 animate-fade-in">
-      <h2 className="text-lg font-display font-bold text-white">All Products</h2>
+    <div className="space-y-5 animate-fade-in px-4 md:px-0">
+      <div className="flex justify-between items-center px-1 mb-2">
+        <h2 className="text-lg font-display font-bold text-white">All Products</h2>
+        <span className="text-xs text-slate-500">{products.length} Items</span>
+      </div>
       {loading?<div className="text-center py-10"><I name="loader" size={28} className="text-slate-600"/></div>:(
-        <div className="grid grid-cols-3 gap-3">{products.map(p=><ProductCard key={p.product_id||p.productId} product={p} userRole={user.role} onClick={setSel} showActions/>)}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          {products.map(p=><ProductCard key={p.product_id||p.productId} product={p} userRole={user.role} onClick={setSel} showActions/>)}
+        </div>
       )}
       {products.length===0&&!loading&&<div className="text-center py-10 glass-card rounded-2xl"><I name="package" size={40} className="text-slate-700 mx-auto mb-3"/><p className="text-slate-600 text-sm">No products found.</p></div>}
       {sel&&<DetailModal product={sel} userRole={user.role} onClose={()=>setSel(null)} onUpdate={load}/>}
@@ -2051,32 +2056,53 @@ const ScannerPage = ({user}) => {
 
 // ─── DASHBOARD LAYOUT ───────────────────────────────────────────────────────
 const TopBar = ({title,user,onProfile}) => (
-  <header className="flex items-center justify-between px-8 py-5 border-b border-white/5 bg-slate-950/20 backdrop-blur-md sticky top-0 z-30">
-    <div>
-      <h2 className="text-xl font-display font-bold text-white tracking-tight">{title}</h2>
+  <header className="flex items-center justify-between px-4 md:px-8 py-4 md:py-5 border-b border-white/5 bg-slate-950/20 backdrop-blur-md sticky top-0 z-30">
+    <div className="min-w-0">
+      <h2 className="text-lg md:text-xl font-display font-bold text-white tracking-tight truncate">{title}</h2>
       <div className="flex items-center gap-2 mt-0.5">
-        <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Workspace</span>
-        <span className="text-slate-700">/</span>
-        <span className="text-[10px] text-teal-500/80 uppercase font-bold tracking-widest">{user.org_name}</span>
+        <span className="hidden sm:inline text-[9px] text-slate-500 uppercase font-bold tracking-widest">Workspace</span>
+        <span className="hidden sm:inline text-slate-700">/</span>
+        <span className="text-[9px] text-teal-500/80 uppercase font-bold tracking-widest truncate">{user.org_name}</span>
       </div>
     </div>
-    <div className="flex items-center gap-4">
-      <button className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-colors relative">
+    <div className="flex items-center gap-3 md:gap-4 ml-2">
+      <button className="hidden sm:flex p-2.5 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-colors relative">
         <I name="bell" size={18}/>
         <span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#0f172a]"></span>
       </button>
-      <div onClick={onProfile} className="flex items-center gap-3 pl-4 border-l border-white/5 cursor-pointer group">
-        <div className="text-right">
+      <div onClick={onProfile} className="flex items-center gap-3 sm:pl-4 sm:border-l border-white/5 cursor-pointer group">
+        <div className="hidden md:block text-right">
           <p className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">{user.full_name}</p>
           <p className="text-[10px] text-slate-500 font-medium">{user.role}</p>
         </div>
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 flex items-center justify-center text-teal-400 group-hover:border-teal-500/30 transition-all shadow-xl">
-          <I name="user" size={20}/>
+        <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 flex items-center justify-center text-teal-400 group-hover:border-teal-500/30 transition-all shadow-xl">
+          <I name="user" size={18}/>
         </div>
       </div>
     </div>
   </header>
 );
+
+const BottomNav = ({activeTab,onTabChange,user}) => {
+  const items = [
+    {id:'dashboard',label:'Home',icon:'chart'},
+    {id:'products',label:'Inv',icon:'package'},
+    {id:'scanner',label:'Scan',icon:'qr'},
+    {id:'transfers',label:'Move',icon:'transfer'},
+    {id:'settings',label:'Set',icon:'settings'},
+  ];
+  return (
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-950/80 backdrop-blur-xl border-t border-white/5 flex justify-around items-center px-2 py-3 z-[100] pb-safe">
+      {items.map(t=>(
+        <button key={t.id} onClick={()=>onTabChange(t.id)}
+          className={`flex flex-col items-center gap-1 flex-1 transition-all ${activeTab===t.id?'text-teal-400':'text-slate-500'}`}>
+          <div className={`p-1.5 rounded-lg ${activeTab===t.id?'bg-teal-500/10':''}`}><I name={t.icon} size={20}/></div>
+          <span className="text-[10px] font-bold uppercase tracking-tighter">{t.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+};
 
 const DashLayout = ({user}) => {
   const [tab,setTab] = useState('dashboard');
@@ -2120,14 +2146,15 @@ const DashLayout = ({user}) => {
   return (
     <div className="flex min-h-screen sc-bg font-sans selection:bg-teal-500/30">
       <Sidebar user={user} activeTab={tab} onTabChange={setTab} onProfileClick={()=>setShowProfile(true)}/>
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
         <TopBar title={getTitle()} user={user} onProfile={()=>setShowProfile(true)}/>
-        <main className="flex-1 p-8 overflow-y-auto custom-scrollbar">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar">
           <div className="max-w-[1400px] mx-auto">
             {content()}
           </div>
         </main>
       </div>
+      <BottomNav activeTab={tab} onTabChange={setTab} user={user}/>
       {showProfile&&<ProfileModal user={user} onClose={()=>setShowProfile(false)}/>}
     </div>
   );
