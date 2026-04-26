@@ -1624,8 +1624,8 @@ const BenchPage = () => {
   const [loadingFull,setLdF] = useState(false);
   const [loadingTps,setLdT] = useState(false);
 
-  const runFull = async()=>{setLdF(true);try{const r=await api.benchFull();if(r.success){setFull(r);toast.success('Benchmark complete!');}else{toast.error(r.error||'Benchmark failed');}}catch(e){toast.error('Failed to fetch: '+e.message);}finally{setLdF(false);}};
-  const runTps = async()=>{setLdT(true);try{const r=await api.benchTps(5);setTps(r);toast.success('TPS test complete!');}catch(e){toast.error(e.message);}finally{setLdT(false);}};
+  const runFull = async()=>{setLdF(true);try{const r=await api.benchFull();console.log('Full Bench Data:', r);if(r.success){setFull(r);toast.success('Benchmark complete!');}else{toast.error(r.error||'Benchmark failed');}}catch(e){toast.error('Failed to fetch: '+e.message);}finally{setLdF(false);}};
+  const runTps = async()=>{setLdT(true);try{const r=await api.benchTps(5);console.log('TPS Data:', r);setTps(r);toast.success('TPS test complete!');}catch(e){toast.error(e.message);}finally{setLdT(false);}};
 
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl px-2">
@@ -1647,16 +1647,16 @@ const BenchPage = () => {
               <div className="glass-card rounded-xl p-3 bg-slate-900/30">
                 <div className="flex items-center gap-1.5 mb-2"><I name="db" size={13} className="text-emerald-400"/><span className="text-[10px] text-slate-400 font-semibold uppercase">Cassandra</span></div>
                 <div className="grid grid-cols-3 gap-2">
-                  {[{l:'Avg',v:full.results.cassandra?`${full.results.cassandra.avgMs}ms`:'N/A'},{l:'Min',v:full.results.cassandra?`${full.results.cassandra.minMs}ms`:'N/A'},{l:'Max',v:full.results.cassandra?`${full.results.cassandra.maxMs}ms`:'N/A'}].map((x,i)=>(
-                    <div key={i} className="text-center"><p className="text-lg font-display font-bold text-emerald-400">{x.v}</p><p className="text-[9px] text-slate-600">{x.l}</p></div>
+                  {[{l:'Avg',v:full.results.cassandra?.avgMs ?? 'N/A'},{l:'Min',v:full.results.cassandra?.minMs ?? 'N/A'},{l:'Max',v:full.results.cassandra?.maxMs ?? 'N/A'}].map((x,i)=>(
+                    <div key={i} className="text-center"><p className="text-lg font-display font-bold text-emerald-400">{typeof x.v === 'number' ? `${x.v}ms` : x.v}</p><p className="text-[9px] text-slate-600">{x.l}</p></div>
                   ))}
                 </div>
               </div>
               <div className="glass-card rounded-xl p-3 bg-slate-900/30">
                 <div className="flex items-center gap-1.5 mb-2"><I name="shield" size={13} className="text-teal-400"/><span className="text-[10px] text-slate-400 font-semibold uppercase font-display tracking-wider">Blockchain (Fabric)</span></div>
                 <div className="grid grid-cols-3 gap-2">
-                  {[{l:'Avg',v:full.results.fabric?.avgMs ? `${full.results.fabric.avgMs}ms` : 'N/A'},{l:'Min',v:full.results.fabric?.minMs ? `${full.results.fabric.minMs}ms` : 'N/A'},{l:'Max',v:full.results.fabric?.maxMs ? `${full.results.fabric.maxMs}ms` : 'N/A'}].map((x,i)=>(
-                    <div key={i} className="text-center"><p className="text-lg font-display font-bold text-teal-400">{x.v}</p><p className="text-[9px] text-slate-600">{x.l}</p></div>
+                  {[{l:'Avg',v:full.results.fabric?.avgMs ?? 'N/A'},{l:'Min',v:full.results.fabric?.minMs ?? 'N/A'},{l:'Max',v:full.results.fabric?.maxMs ?? 'N/A'}].map((x,i)=>(
+                    <div key={i} className="text-center"><p className="text-lg font-display font-bold text-teal-400">{typeof x.v === 'number' ? `${x.v}ms` : x.v}</p><p className="text-[9px] text-slate-600">{x.l}</p></div>
                   ))}
                 </div>
                 {full.results.fabric?.error && <p className="text-[9px] text-amber-500/80 mt-2 bg-amber-500/5 p-1.5 rounded border border-amber-500/10 italic text-center">{full.results.fabric.error}</p>}
