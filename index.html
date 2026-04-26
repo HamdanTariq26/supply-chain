@@ -250,7 +250,7 @@ const api = {
   payNow:  (id,data)   => api.req(`/products/${id}/payment`, { method:'POST', body:JSON.stringify(data) }),
   benchFull: ()        => api.req('/benchmarks/full'),
   benchTps:  (n)       => api.req('/benchmarks/tps', { method:'POST', body:JSON.stringify({count:n}) }),
-  health:  ()          => api.req('/health').catch(()=>null),
+  health:  ()          => fetch(`${API_BASE.replace('/api','')}/health`).then(r=>r.json()).catch(()=>null),
 };
 
 // ─── TOAST CONTEXT ────────────────────────────────────────────────────────────
@@ -1623,7 +1623,7 @@ const BenchPage = () => {
   const [loadingFull,setLdF] = useState(false);
   const [loadingTps,setLdT] = useState(false);
 
-  const runFull = async()=>{setLdF(true);try{const r=await api.benchFull();setFull(r);toast.success('Benchmark complete!');}catch(e){toast.error(e.message);}finally{setLdF(false);}};
+  const runFull = async()=>{setLdF(true);try{const r=await api.benchFull();if(r.success){setFull(r);toast.success('Benchmark complete!');}else{toast.error(r.error||'Benchmark failed');}}catch(e){toast.error('Failed to fetch: '+e.message);}finally{setLdF(false);}};
   const runTps = async()=>{setLdT(true);try{const r=await api.benchTps(5);setTps(r);toast.success('TPS test complete!');}catch(e){toast.error(e.message);}finally{setLdT(false);}};
 
   return (
