@@ -1776,58 +1776,129 @@ const SettingsPage = ({user}) => {
 
 // ─── TAB: ABOUT ─────────────────────────────────────────────────────────────
 const AboutPage = () => {
-  const team = [
-    { name: 'Hamdan Tariq', role: 'Team Lead & Architect', nust: 'NUST — BS Artificial Intelligence', 
-      desc: 'Directed end-to-end technical vision, blockchain infrastructure, and distributed data pipelines.',
-      skills: ['Architecture','Node.js','Fabric','Kafka','Cassandra'] },
-    { name: 'Mubashara Anees', role: 'Project Collaborator', nust: 'System Planning & Validation', 
-      desc: 'Shaped project execution through workflow analysis, business logic validation, and quality assurance.',
-      skills: ['Planning','Testing','Logic','Analysis','QA'] }
-  ];
+  const hamdan = {
+    name: 'Hamdan Tariq', role: 'Team Lead & Chief Architect',
+    nust: 'NUST — BS Artificial Intelligence',
+    summary: 'Directed the end-to-end technical vision and execution, evolving the project from a prototype into a fully operational enterprise solution.',
+    tasks: [
+      'Enterprise System Architecture Design',
+      'Backend Engineering (Node.js & Express)',
+      'Blockchain Integration (Hyperledger Fabric)',
+      'Smart Contract (Go) Lifecycle Management',
+      'Distributed Event Streaming (Apache Kafka)',
+      'NoSQL Data Modeling (Apache Cassandra)',
+      'Secure Public Exposure (ngrok Tunneling)'
+    ]
+  };
+
+  const mubashara = {
+    name: 'Mubashara Anees', role: 'Project Collaborator',
+    nust: 'System Planning & Quality Assurance',
+    summary: 'Played a substantial role in shaping project execution through strategic collaboration, system planning, and testing strategies.',
+    tasks: [
+      'Validation of Operational Workflows',
+      'Business Logic Evaluation',
+      'Testing & Refinement of Features',
+      'Documentation & Structured Reporting',
+      'Milestone Coordination',
+      'Quality Assurance & Presentation'
+    ]
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-10">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-display font-bold text-white tracking-tight">SupplyChain <span className="gradient-text">Enterprise</span></h2>
-        <p className="text-slate-500 text-sm max-w-xl mx-auto italic">"A professionally engineered blockchain solution combining decentralized trust and real-time operational intelligence."</p>
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
+      {/* Hero Section */}
+      <div className="text-center space-y-4">
+        <div className="inline-flex p-3 bg-teal-500/10 rounded-2xl mb-2">
+          <I name="globe" size={32} className="text-teal-400"/>
+        </div>
+        <h2 className="text-4xl font-display font-bold text-white tracking-tight">SupplyChain <span className="gradient-text">Enterprise</span></h2>
+        <p className="text-slate-500 text-sm max-w-2xl mx-auto leading-relaxed">
+          A professionally engineered blockchain solution combining decentralized trust, 
+          distributed data systems, and real-time operational intelligence.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {team.map((m, i) => (
-          <div key={i} className="glass-card rounded-3xl p-6 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><I name={i===0?'shield':'user'} size={60}/></div>
-            <div className="relative z-10">
-              <p className="text-[10px] font-bold text-teal-400 uppercase tracking-widest mb-1">{m.role}</p>
-              <h3 className="text-xl font-display font-bold text-white mb-0.5">{m.name}</h3>
-              <p className="text-xs text-slate-500 mb-4">{m.nust}</p>
-              <p className="text-xs text-slate-400 leading-relaxed mb-5">{m.desc}</p>
-              <div className="flex flex-wrap gap-2">
-                {m.skills.map(s => <span key={s} className="px-2 py-1 rounded-md bg-white/5 border border-white/5 text-[9px] font-bold text-slate-500 uppercase tracking-tighter">{s}</span>)}
-              </div>
+      {/* Team Lead Section */}
+      <div className="glass-card rounded-[2rem] p-8 relative overflow-hidden border-teal-500/20 shadow-2xl shadow-teal-500/5">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] rotate-12"><I name="shield" size={180}/></div>
+        <div className="relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <p className="text-xs font-bold text-teal-400 uppercase tracking-[0.2em] mb-1">{hamdan.role}</p>
+              <h3 className="text-2xl font-display font-bold text-white">{hamdan.name}</h3>
+              <p className="text-xs text-slate-500">{hamdan.nust}</p>
+            </div>
+            <div className="flex gap-2">
+              <span className="px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-[10px] font-bold text-teal-400">Team Lead</span>
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="glass-card rounded-2xl p-6">
-        <h3 className="text-sm font-display font-bold text-white mb-4 flex items-center gap-2"><I name="building" size={16} className="text-teal-400"/>Academic Supervision</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-slate-900/40 border border-white/5">
-            <p className="text-xs font-bold text-white">Dr. Mohsin Raza</p>
-            <p className="text-[10px] text-slate-500 uppercase">Research Head of Department</p>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-900/40 border border-white/5">
-            <p className="text-xs font-bold text-white">Mr. Abid Hussain</p>
-            <p className="text-[10px] text-slate-500 uppercase">Laboratory Engineering Supervisor</p>
+          <p className="text-sm text-slate-300 leading-relaxed mb-6 italic border-l-2 border-teal-500/30 pl-4">{hamdan.summary}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+            {hamdan.tasks.map((t,i)=>(
+              <div key={i} className="flex items-center gap-2.5 text-[11px] text-slate-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-teal-500/40"></div>{t}
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="glass-card rounded-2xl p-6 text-center">
-        <p className="text-xs text-slate-500 leading-relaxed">
-          SupplyChain Enterprise is built on a <span className="text-teal-400 font-semibold">Cloud-Native Architecture</span> utilizing 
-          Hyperledger Fabric, Kafka, Cassandra, and Node.js to solve real-world traceability challenges in modern logistics.
-        </p>
+      {/* Collaborator Section */}
+      <div className="glass-card rounded-[2rem] p-8 relative overflow-hidden border-amber-500/10">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] -rotate-12"><I name="user" size={180}/></div>
+        <div className="relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <p className="text-xs font-bold text-amber-400 uppercase tracking-[0.2em] mb-1">{mubashara.role}</p>
+              <h3 className="text-2xl font-display font-bold text-white">{mubashara.name}</h3>
+              <p className="text-xs text-slate-500">{mubashara.nust}</p>
+            </div>
+            <div className="flex gap-2">
+              <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-400">Collaborator</span>
+            </div>
+          </div>
+          <p className="text-sm text-slate-300 leading-relaxed mb-6 italic border-l-2 border-amber-500/30 pl-4">{mubashara.summary}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+            {mubashara.tasks.map((t,i)=>(
+              <div key={i} className="flex items-center gap-2.5 text-[11px] text-slate-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500/40"></div>{t}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Supervision & Closing */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 glass-card rounded-2xl p-6">
+          <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+            <I name="building" size={14} className="text-teal-400"/> Academic Supervision
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-slate-900/40 border border-white/5 group hover:border-teal-500/30 transition-colors">
+              <p className="text-sm font-bold text-white">Dr. Mohsin Raza</p>
+              <p className="text-[10px] text-slate-600 uppercase font-semibold">Research Head of Department</p>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-900/40 border border-white/5 group hover:border-teal-500/30 transition-colors">
+              <p className="text-sm font-bold text-white">Mr. Abid Hussain</p>
+              <p className="text-[10px] text-slate-600 uppercase font-semibold">Laboratory Engineering Supervisor</p>
+            </div>
+          </div>
+        </div>
+        <div className="glass-card rounded-2xl p-6 flex flex-col justify-center text-center">
+          <p className="text-[10px] font-bold text-slate-500 uppercase mb-2">Final Conclusion</p>
+          <p className="text-xs text-slate-400 italic leading-relaxed">
+            "Demonstrating both technical depth and practical innovation in cloud computing and decentralized trust."
+          </p>
+        </div>
+      </div>
+
+      {/* Engineering Badges */}
+      <div className="flex flex-wrap justify-center gap-3 opacity-60">
+        {['Hyperledger Fabric','Apache Kafka','Apache Cassandra','Node.js','Docker','React','Enterprise Go'].map(tech=>(
+          <span key={tech} className="text-[9px] font-bold text-slate-600 border border-slate-800 px-3 py-1 rounded-md uppercase tracking-tighter">{tech}</span>
+        ))}
       </div>
     </div>
   );
